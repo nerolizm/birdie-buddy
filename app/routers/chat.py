@@ -4,7 +4,7 @@ import asyncio
 
 from aioredis.client import Redis, PubSub
 from fastapi.responses import HTMLResponse
-from fastapi import APIRouter, status, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ html = """
             function connect(event) {
                 var room_id = document.getElementById('roomText').value;
                 document.querySelector("#ws-room-id").textContent = room_id
-                ws = new WebSocket(`ws://localhost/ws/${room_id}/${client_id}`);
+                ws = new WebSocket(`ws://localhost/chat/ws/${room_id}/${client_id}`);
                 ws.onmessage = function(event) {
                     var messages = document.getElementById('messages')
                     var message = document.createElement('li')
@@ -65,17 +65,12 @@ html = """
 """
 
 
-@router.get("/health-check", status_code=status.HTTP_200_OK)
-def health_check():
-    return "healthy"
-
-
-@router.get("/")
+@router.get("/chat")
 async def get():
     return HTMLResponse(html)
 
 
-@router.websocket("/ws/{room_id}/{client_id}")
+@router.websocket("/chat/ws/{room_id}/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: int):
     await websocket.accept()
     await connection(websocket, room_id, client_id)
